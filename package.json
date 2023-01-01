@@ -1,0 +1,19 @@
+{
+    "name": "hephaestus",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build-controller": "npm --prefix './controller' run  build",
+        "build-worker": "npm --prefix './worker' run  build",
+        "build": "npm run build-controller && npm run build-worker",
+        "start-controller": "npm --prefix './controller' start",
+        "start-worker": "npm --prefix './worker' start",
+        "start": "npm run start-controller && npm run start-worker"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^4.9.4"
+    }
+}

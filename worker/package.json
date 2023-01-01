@@ -1,0 +1,12 @@
+{
+    "name": "hephaestus-worker",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "tsc -t es5 worker.ts",
+        "start": "node worker.js"
+    },
+    "dependencies": {
+        "@types/ws": "^8.5.3",
+        "ws": "^8.11.0"
+    }
+}

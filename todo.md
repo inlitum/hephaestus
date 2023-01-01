@@ -1,0 +1,3 @@
+- [ ] Allow worker to connect to controller with WS
+- [ ] Create robust interface for data transfer between controller and workers
+- [ ] Master/Slave system for controller, only controller is in charge

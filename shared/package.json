@@ -1,0 +1,9 @@
+{
+    "name": "hephaestus-lib",
+    "version": "1.0.0",
+    "dependencies": {
+        "uuid": "^9.0.0",
+        "winston": "^3.8.2",
+        "ws": "^8.11.0"
+    }
+}
