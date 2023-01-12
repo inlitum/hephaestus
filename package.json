@@ -4,16 +4,27 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build-controller": "npm --prefix './controller' run  build",
-        "build-worker": "npm --prefix './worker' run  build",
-        "build": "npm run build-controller && npm run build-worker",
-        "start-controller": "npm --prefix './controller' start",
-        "start-worker": "npm --prefix './worker' start",
-        "start": "npm run start-controller && npm run start-worker"
+        "build": "tsc",
+        "start": "node ./build/hephaestus.js",
+        "start-client": "node ./build/hephaestus.js -s client",
+        "start-server": "node ./build/hephaestus.js -s server",
+        "start-populate": "node ./build/hephaestus.js -s populate"
     },
     "author": "",
     "license": "ISC",
     "devDependencies": {
+        "@types/minimist": "^1.2.2",
+        "@types/node": "^18.11.18",
+        "@types/pg": "^8.6.6",
+        "@types/uuid": "^9.0.0",
+        "@types/ws": "^8.5.4",
         "typescript": "^4.9.4"
+    },
+    "dependencies": {
+        "minimist": "^1.2.7",
+        "pg": "^8.8.0",
+        "uuid": "^9.0.0",
+        "winston": "^3.8.2",
+        "ws": "^8.12.0"
     }
 }

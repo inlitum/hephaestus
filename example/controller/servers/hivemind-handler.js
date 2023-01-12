@@ -33,7 +33,7 @@ var HivemindHandler = /** @class */ (function (_super) {
             this.logger.error(error);
             return;
         }
-        this.logger.info('A pre-existing controller has been found. ');
+        this.logger.info('A pre-existing controller has been found.');
         this.initialiseClient('ws://localhost:8081');
     };
     HivemindHandler.prototype.handleInitialisationSucceeded = function () {
