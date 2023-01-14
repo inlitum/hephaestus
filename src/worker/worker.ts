@@ -1,7 +1,7 @@
 import { v4 }                                       from 'uuid';
 import { ClientOptions, RawData, WebSocket }        from 'ws';
 import { createLogger, Logger, transports, format } from 'winston';
-import { Message }                                  from '../message-types';
+import { HandshakeData, Message }                   from '../message-types';
 
 const { combine, timestamp, label, printf } = format;
 
@@ -39,7 +39,7 @@ export abstract class Worker {
     }
 
     public initialiseWebSocketClient (address: string, config: ClientOptions = {}) {
-        this.logger.info (`Initialising a new websocket client with id: ${this.id}`)
+        this.logger.info (`Initialising a new websocket client with id: ${this.id}`);
         this.websocket = new WebSocket (address, config);
 
         this.websocket.on ('open', () => {
@@ -54,7 +54,7 @@ export abstract class Worker {
         });
 
         this.websocket.on ('close', (code: number, reason: Buffer) => {
-            this.logger.info (`Connection close with websocket server at address [${address}] with code [${code}]: ${reason.toString()}`);
+            this.logger.info (`Connection close with websocket server at address [${address}] with code [${code}]: ${reason.toString ()}`);
             this.clientClose (code, reason);
         });
 
@@ -65,8 +65,11 @@ export abstract class Worker {
     }
 
     public abstract clientConnected (): void;
+
     public abstract clientClose (code?: number, reason?: Buffer): void;
+
     public abstract clientError (error: Error): void;
+
     public abstract receivedMessageFromServer (data: RawData): void;
 
     // Generates a new UUID.
@@ -93,12 +96,13 @@ export abstract class Worker {
             return;
         }
 
-        let connectionMessage: Message = {
-            type: 'handshake',
-            data: {
-                id: this.id
-            }
-        };
+        let handshake = new HandshakeData ();
+
+        handshake.id = this.id;
+
+        let connectionMessage  = new Message ();
+        connectionMessage.type = 'handshake';
+        connectionMessage.data = JSON.stringify (handshake);
         // Send a message to the server with the generated UUID for this worker
         // so there is parity between server and client.
         this.websocket.send (JSON.stringify (connectionMessage));

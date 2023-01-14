@@ -1,7 +1,7 @@
-import { Controller }         from './controller';
-import { IncomingMessage }    from 'http';
-import { RawData, WebSocket } from 'ws';
-import { Message }            from '../message-types';
+import { Controller }                 from './controller';
+import { IncomingMessage }            from 'http';
+import { RawData, WebSocket }         from 'ws';
+import { InformationalData, Message } from '../message-types';
 
 export class ClientController extends Controller {
 
@@ -19,6 +19,15 @@ export class ClientController extends Controller {
     }
 
     receivedMessageFromClient (data: Message): void {
+        if (data.type === 'information') {
+            if (!data.data) {
+                return;
+            }
+            let information = new InformationalData ();
+            information.fillFromJSON (data.data);
+
+            console.log(information)
+        }
     }
 
     receivedMessageFromServer (data: RawData): void {
@@ -28,6 +37,7 @@ export class ClientController extends Controller {
     }
 
     serverConnection (websocket: WebSocket, request: IncomingMessage): void {
+
     }
 
     serverError (error: Error): void {

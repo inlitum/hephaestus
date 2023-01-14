@@ -1,7 +1,7 @@
 import { Worker }                                             from '../worker/worker';
 import { RawData, ServerOptions, WebSocket, WebSocketServer } from 'ws';
 import { IncomingMessage }                                    from 'http';
-import { Message }                                            from '../message-types';
+import { HandshakeData, Message }                             from '../message-types';
 
 declare module 'ws' {
     interface WebSocket {
@@ -13,7 +13,7 @@ export abstract class Controller extends Worker {
 
     protected websocketServer: WebSocketServer | null = null;
 
-    protected get sockets (): {[id: string]: WebSocket} {
+    protected get sockets (): { [ id: string ]: WebSocket } {
         if (!this._sockets) {
             this._sockets = {};
         }
@@ -28,7 +28,7 @@ export abstract class Controller extends Worker {
     initialiseWebSocketServer (config: ServerOptions = {}) {
         this.logger.info (`Initialising a new websocket server with id: ${this.id}`);
 
-        this.websocketServer = new WebSocketServer(config);
+        this.websocketServer = new WebSocketServer (config);
 
         this.websocketServer.on ('close', () => {
             this.logger.info (`Websocket server flagged to close.`);
@@ -39,13 +39,13 @@ export abstract class Controller extends Worker {
 
             // Load all websocket event listeners.
             websocket.on ('message', (data: RawData) => {
-
                 let message: Message;
 
                 try {
-                    message = JSON.parse (data.toString());
+                    message = JSON.parse (data.toString ());
                 } catch (e) {
-                    message = { type: 'errored', data: null };
+                    message      = new Message ();
+                    message.type = 'errored';
                 }
 
                 if (!message.type || message.type == 'errored') {
@@ -54,25 +54,33 @@ export abstract class Controller extends Worker {
                 }
 
                 if (message.type === 'handshake') {
-                    if (!message.data.id) {
-                        this.logger.info ( 'Handshake message received from websocket client is invalid.');
+                    if (!message.data) {
+                        this.logger.info ('Handshake message received from websocket client is invalid.');
                         return;
                     }
 
-                    this.logger.info ( `Handshake message received from websocket client is valid.`);
-                    this.logger.info ( `Setting the websocket client's id to [${message.data.id}].`);
-                    websocket.id = message.data.id;
-                    this.sockets[message.data.id] = websocket;
+                    let handshake = new HandshakeData ();
+                    handshake.fillFromJSON (message.data);
+
+                    if (!handshake.id) {
+                        this.logger.info (`Handshake message received from websocket client is invalid.`);
+                        return;
+                    }
+
+                    this.logger.info (`Handshake message received from websocket client is valid.`);
+                    this.logger.info (`Setting the websocket client's id to [${handshake.id}].`);
+                    websocket.id                 = handshake.id;
+                    this.sockets[ handshake.id ] = websocket;
                     return;
                 }
 
-                this.logger.info ( `Received handshake message from websocket client [${websocket.id}]:`);
-                this.logger.info ( JSON.stringify(message));
+                this.logger.info (`Received handshake message from websocket client [${websocket.id}]:`);
+                this.logger.info (JSON.stringify (message));
                 this.receivedMessageFromClient (message);
             });
 
             websocket.on ('close', (code: number, reason: Buffer) => {
-                this.logger.info (`Connection to websocket client has close with code [${code}]`, reason.toString());
+                this.logger.info (`Connection to websocket client has close with code [${code}]`, reason.toString ());
             });
 
             websocket.on ('error', (error: Error) => {
@@ -83,29 +91,36 @@ export abstract class Controller extends Worker {
         });
         this.websocketServer.on ('error', (error: Error) => {
             this.logger.info (`Websocket server returned the following error:`, error);
-            this.serverError(error);
+            this.serverError (error);
         });
     }
 
     public abstract serverConnection (websocket: WebSocket, request: IncomingMessage): void;
+
     public abstract serverClose (): void;
+
     public abstract serverError (error: Error): void;
+
     public abstract receivedMessageFromClient (data: Message): void;
 
     /**
      * Private
      */
-    private _sockets: {[uuid: string]: WebSocket} | null = null;
+    private _sockets: { [ uuid: string ]: WebSocket } | null = null;
 
     /**
      * Worker related code.
      */
-    close (code: number, reason: Buffer): void {}
+    close (code: number, reason: Buffer): void {
+    }
 
-    connected (): void {}
+    connected (): void {
+    }
 
-    error (error: Error): void {}
+    error (error: Error): void {
+    }
 
-    message (data: RawData): void {}
+    message (data: RawData): void {
+    }
 
 }
