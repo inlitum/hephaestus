@@ -12,6 +12,7 @@ declare module 'ws' {
 export abstract class Controller extends Worker {
 
     protected websocketServer: WebSocketServer | null = null;
+    protected isClient: boolean = false;
 
     protected get sockets (): { [ id: string ]: WebSocket } {
         if (!this._sockets) {
@@ -44,11 +45,6 @@ export abstract class Controller extends Worker {
                 try {
                     message = JSON.parse (data.toString ());
                 } catch (e) {
-                    message      = new Message ();
-                    message.type = 'errored';
-                }
-
-                if (!message.type || message.type == 'errored') {
                     this.logger.error ('Invalid message received by websocket client.');
                     return;
                 }

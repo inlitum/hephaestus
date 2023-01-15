@@ -2,6 +2,7 @@ import { v4 }                                       from 'uuid';
 import { ClientOptions, RawData, WebSocket }        from 'ws';
 import { createLogger, Logger, transports, format } from 'winston';
 import { HandshakeData, Message }                   from '../message-types';
+import {serialize} from "class-transformer";
 
 const { combine, timestamp, label, printf } = format;
 
@@ -61,6 +62,11 @@ export abstract class Worker {
         this.websocket.on ('error', (error: Error) => {
             this.logger.info (`Connection to websocket server at address [${address}] returned following error: ${error}`);
             this.clientError (error);
+
+            if (!this.websocket) {
+                return;
+            }
+            this.websocket.close ();
         });
     }
 
@@ -71,6 +77,8 @@ export abstract class Worker {
     public abstract clientError (error: Error): void;
 
     public abstract receivedMessageFromServer (data: RawData): void;
+
+    public abstract end (): void;
 
     // Generates a new UUID.
     public generateUUID () {
@@ -101,10 +109,9 @@ export abstract class Worker {
         handshake.id = this.id;
 
         let connectionMessage  = new Message ();
-        connectionMessage.type = 'handshake';
-        connectionMessage.data = JSON.stringify (handshake);
+        connectionMessage.data = handshake;
         // Send a message to the server with the generated UUID for this worker
         // so there is parity between server and client.
-        this.websocket.send (JSON.stringify (connectionMessage));
+        this.websocket.send (JSON.stringify (serialize(connectionMessage)));
     }
 }

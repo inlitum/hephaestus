@@ -1,24 +1,33 @@
+import {OSRSItem} from "./populator/populate";
+import {serialize, Type} from "class-transformer";
 
-export class Serializable {
-    fillFromJSON(json: string) {
-        let jsonObj = JSON.parse(json);
-        for (let propName in jsonObj) {
-            // @ts-ignore
-            this[propName] = jsonObj[propName]
-        }
-    }
-}
+type MessageType = 'handshake' | 'information' | 'crud' | 'errored' | undefined;
 
-export class Message extends Serializable {
-    type: string | undefined;
-    data: string | undefined;
-
-}
-
-export class HandshakeData extends Serializable {
+export class HandshakeData {
     id: string | undefined;
 }
 
-export class InformationalData extends Serializable {
+export class InformationalData {
     information: number | undefined;
+}
+
+export class Itemstack {
+    item: OSRSItem | undefined;
+
+}
+
+export class Message {
+    @Type(() => Object, {
+        discriminator: {
+            property: '__type',
+            subTypes: [
+                { value: HandshakeData, name: 'handshake'},
+                { value: InformationalData, name: 'information'},
+                { value: Itemstack, name: 'itemstack'}
+            ]
+        },
+        keepDiscriminatorProperty: true
+    })
+    data: HandshakeData | InformationalData | Itemstack | undefined;
+
 }

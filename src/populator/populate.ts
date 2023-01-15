@@ -5,15 +5,27 @@ export class Populate {
     client: Client | null = null;
 
     public constructor () {
-        this.client = new Client ({ user: 'n2acd_owner', password: 'n2acd_owner', database: 'n2in' });
-        this.client.connect ();
+        let host = process.env.PG_HOST ?? 'localhost';
+        let port = Number.parseInt(process.env.PG_PORT ?? '');
+        let username = process.env.PG_USERNAME ?? 'postgres';
+        let password = process.env.PG_PASSWORD ?? '';
+        let database = process.env.PG_DATABASE ?? 'postgres';
 
-        this.initSchema ().then (() => {
-            this.initTables ().then (() => {
-                this.readItems ();
-                // this.client?.end();
-            });
-        });
+        if (!port || isNaN(port)) {
+            port = 5432;
+        }
+
+        this.client = new Client ({ host: host, port: port, user: username, password: password, database: database });
+        this.client.connect ().then (() => {
+                this.initSchema ().then (() => {
+                    this.initTables ().then (() => {
+                        this.readItems ();
+                        // this.client?.end();
+                    });
+                });
+            }
+        );
+
 
     }
 

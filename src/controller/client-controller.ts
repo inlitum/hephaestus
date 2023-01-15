@@ -1,13 +1,21 @@
 import { Controller }                 from './controller';
 import { IncomingMessage }            from 'http';
 import { RawData, WebSocket }         from 'ws';
-import { InformationalData, Message } from '../message-types';
+import {Message} from "../message-types";
 
 export class ClientController extends Controller {
 
     public constructor () {
         super ('ClientController');
     }
+
+    /*
+        public
+     */
+
+    /*
+        client inheritable
+     */
 
     clientClose (code?: number, reason?: Buffer): void {
     }
@@ -18,19 +26,24 @@ export class ClientController extends Controller {
     clientError (error: Error): void {
     }
 
-    receivedMessageFromClient (data: Message): void {
-        if (data.type === 'information') {
-            if (!data.data) {
-                return;
-            }
-            let information = new InformationalData ();
-            information.fillFromJSON (data.data);
-
-            console.log(information)
-        }
+    receivedMessageFromServer (data: RawData): void {
     }
 
-    receivedMessageFromServer (data: RawData): void {
+    /*
+        server inheritable
+     */
+
+    receivedMessageFromClient (message: Message): void {
+        if (!message.data) {
+            return;
+        }
+        // switch (message.type) {
+        //     case 'information': {
+        //         let information = new InformationalData ();
+        //         information.fillFromJSON (message.data);
+        //         console.log(information)
+        //     }
+        // }
     }
 
     serverClose (): void {
@@ -41,6 +54,22 @@ export class ClientController extends Controller {
     }
 
     serverError (error: Error): void {
+    }
+
+    end(): void {
+        if (this.isClient) {
+            if (!this.websocket) {
+                return;
+            }
+            this.websocket.close();
+        }
+
+        if (!this.isClient) {
+            if (!this.websocketServer) {
+                return;
+            }
+            this.websocketServer.close();
+        }
     }
 
 }
