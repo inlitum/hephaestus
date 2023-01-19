@@ -5,10 +5,10 @@
     "main": "index.js",
     "scripts": {
         "build": "tsc",
-        "start": "node ./build/hephaestus.js",
-        "start-client": "node ./build/hephaestus.js -s client",
-        "start-server": "node ./build/hephaestus.js -s server",
-        "start-populate": "node ./build/hephaestus.js -s populate"
+        "client": "node ./build/hephaestus.js -s client",
+        "server": "node ./build/hephaestus.js -s server",
+        "create": "node ./build/hephaestus.js -s create",
+        "populate": "node ./build/hephaestus.js -s populate"
     },
     "author": "",
     "license": "ISC",
@@ -22,11 +22,9 @@
         "typescript": "^4.9.4"
     },
     "dependencies": {
-        "class-transformer": "^0.5.1",
         "dotenv": "^16.0.3",
         "minimist": "^1.2.7",
         "pg": "^8.8.0",
-        "reflect-metadata": "^0.1.13",
         "uuid": "^9.0.0",
         "winston": "^3.8.2",
         "ws": "^8.12.0"

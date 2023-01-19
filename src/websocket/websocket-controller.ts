@@ -1,7 +1,7 @@
-import { Worker }                                             from '../worker/worker';
 import { RawData, ServerOptions, WebSocket, WebSocketServer } from 'ws';
-import { IncomingMessage }                                    from 'http';
-import { HandshakeData, Message }                             from '../message-types';
+import { Message }                             from '../message-types';
+import { Loggable }                                           from '../lib/loggable';
+import { Hermes }                                             from '../hermes/hermes';
 
 declare module 'ws' {
     interface WebSocket {
@@ -9,12 +9,13 @@ declare module 'ws' {
     }
 }
 
-export abstract class Controller extends Worker {
+export class WebsocketController extends Loggable {
+
+    public static INSTANCE: WebsocketController;
 
     protected websocketServer: WebSocketServer | null = null;
-    protected isClient: boolean = false;
 
-    protected get sockets (): { [ id: string ]: WebSocket } {
+    protected get sockets (): {[id: string]: WebSocket} {
         if (!this._sockets) {
             this._sockets = {};
         }
@@ -22,8 +23,13 @@ export abstract class Controller extends Worker {
         return this._sockets;
     }
 
-    public constructor (loggerName: string) {
-        super (loggerName);
+    public constructor () {
+        super ('WebsocketController');
+        if (WebsocketController.INSTANCE != null) {
+            return;
+        }
+
+        WebsocketController.INSTANCE = this;
     }
 
     initialiseWebSocketServer (config: ServerOptions = {}) {
@@ -33,9 +39,8 @@ export abstract class Controller extends Worker {
 
         this.websocketServer.on ('close', () => {
             this.logger.info (`Websocket server flagged to close.`);
-            this.serverClose ();
         });
-        this.websocketServer.on ('connection', (websocket, request) => {
+        this.websocketServer.on ('connection', (websocket) => {
             this.logger.info (`Websocket server received a new connection.`);
 
             // Load all websocket event listeners.
@@ -45,34 +50,37 @@ export abstract class Controller extends Worker {
                 try {
                     message = JSON.parse (data.toString ());
                 } catch (e) {
+                    message      = {
+                        type: 'errored',
+                        data: ''
+                    };
+                }
+
+                if (!message.type || message.type == 'errored') {
                     this.logger.error ('Invalid message received by websocket client.');
                     return;
                 }
 
                 if (message.type === 'handshake') {
+                    console.log(message)
                     if (!message.data) {
                         this.logger.info ('Handshake message received from websocket client is invalid.');
                         return;
                     }
 
-                    let handshake = new HandshakeData ();
-                    handshake.fillFromJSON (message.data);
-
-                    if (!handshake.id) {
-                        this.logger.info (`Handshake message received from websocket client is invalid.`);
-                        return;
-                    }
-
                     this.logger.info (`Handshake message received from websocket client is valid.`);
-                    this.logger.info (`Setting the websocket client's id to [${handshake.id}].`);
-                    websocket.id                 = handshake.id;
-                    this.sockets[ handshake.id ] = websocket;
+                    this.logger.info (`Setting the websocket client's id to [${message.data}].`);
+                    websocket.id = message.data;
+                    this.sockets[message.data] = websocket;
                     return;
                 }
 
                 this.logger.info (`Received handshake message from websocket client [${websocket.id}]:`);
                 this.logger.info (JSON.stringify (message));
-                this.receivedMessageFromClient (message);
+
+                message.websocketId = websocket.id;
+
+                Hermes.handleRoute(message.type, message);
             });
 
             websocket.on ('close', (code: number, reason: Buffer) => {
@@ -82,41 +90,22 @@ export abstract class Controller extends Worker {
             websocket.on ('error', (error: Error) => {
                 this.logger.info (`Connection to websocket client the returned following error:`, error);
             });
-
-            this.serverConnection (websocket, request);
         });
         this.websocketServer.on ('error', (error: Error) => {
             this.logger.info (`Websocket server returned the following error:`, error);
-            this.serverError (error);
         });
     }
 
-    public abstract serverConnection (websocket: WebSocket, request: IncomingMessage): void;
+    public static send (websocketId: string, message: any) {
 
-    public abstract serverClose (): void;
+    }
 
-    public abstract serverError (error: Error): void;
+    public static sendAll (message: any) {
 
-    public abstract receivedMessageFromClient (data: Message): void;
+    }
 
     /**
      * Private
      */
-    private _sockets: { [ uuid: string ]: WebSocket } | null = null;
-
-    /**
-     * Worker related code.
-     */
-    close (code: number, reason: Buffer): void {
-    }
-
-    connected (): void {
-    }
-
-    error (error: Error): void {
-    }
-
-    message (data: RawData): void {
-    }
-
+    private _sockets: {[id: string]: WebSocket} | null = null;
 }
