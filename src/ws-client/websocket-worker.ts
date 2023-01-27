@@ -16,13 +16,14 @@ export class WebsocketWorker extends Loggable {
         this.websocket.on ('open', () => {
             this.logger.info (`Connected to websocket server at address [${address}] using server config: ${config}`);
             this.performInitialHandshake ();
-
             let s = {
                 type: 'inventory.create',
                 data: {
-                    itemId: 'something',
+                    playerId: 1,
+                    itemId: 4,
                     stackSize: 64,
-
+                    row: 1,
+                    column: 1
                 }
             };
 
@@ -35,10 +36,12 @@ export class WebsocketWorker extends Loggable {
 
         this.websocket.on ('close', (code: number, reason: Buffer) => {
             this.logger.info (`Connection close with websocket server at address [${address}] with code [${code}]: ${reason.toString ()}`);
+            return;
         });
 
         this.websocket.on ('error', (error: Error) => {
             this.logger.info (`Connection to websocket server at address [${address}] returned following error: ${error}`);
+            this.websocket?.close();
         });
     }
 

@@ -1,11 +1,11 @@
 import * as minimist           from 'minimist';
 import * as process            from 'process';
 import { Hermes }              from './hermes/hermes';
-import { WebsocketController } from './websocket/websocket-controller';
-import { WebsocketWorker }     from './websocket/websocketWorker';
 import { Routes }              from './routes';
 import * as dotenv             from 'dotenv';
 import { Hive }                from './db/hive';
+import { WebsocketWorker }     from './ws-client/websocket-worker';
+import { WebsocketController } from './ws-server/websocket-controller';
 
 let args = minimist (process.argv.slice (2), {
     string: [ 'start' ],
@@ -35,7 +35,7 @@ if (args.start === 'server') {
 }
 
 if (args.start === 'create') {
-    hive.createDb ();
+    hive.createDatabase ();
 }
 if (args.start === 'populate') {
 

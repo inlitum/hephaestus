@@ -96,8 +96,18 @@ export class WebsocketController extends Loggable {
         });
     }
 
-    public static send (websocketId: string, message: any) {
+    public static send (websocketId: string, message: string) {
+        if (!this.INSTANCE._sockets) {
+            this.INSTANCE.logger.error (`No sockets stored... is this an error?`);
+            return;
+        }
 
+        if (this.INSTANCE._sockets[websocketId] == null) {
+            this.INSTANCE.logger.error(`Attempted to respond to websocket [${websocketId}] but the socket doesn't exist.`);
+            return;
+        }
+
+        this.INSTANCE._sockets[websocketId].send(message);
     }
 
     public static sendAll (message: any) {
